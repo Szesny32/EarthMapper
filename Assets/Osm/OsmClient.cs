@@ -3,77 +3,114 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Xml;
-
+using System.Globalization;
 
 public class OsmClient : MonoBehaviour
 {
 
-    OsmData data;
+
+
+    XmlNodeList wayNodes;
+
 
     void Start()
     {
 
-            data = parseOsmData();
-        
+        loadWayNodes();
+        //buildRoads();
+
+
         
     }
     void Update(){
-        Debug.Log(data.getRoadsCount());
+        
+        //Debug.Log(data.getRoadsCount());
+    }
+ 
+    void loadWayNodes(){
+        string xmlFilePath = Application.dataPath + "/Osm/map2.xml";
+        XmlDocument xmlDoc = new XmlDocument();
+        xmlDoc.Load(xmlFilePath);
+        wayNodes = xmlDoc.GetElementsByTagName("way");
+
+        // Zainicjalizuj struktury danych
+        List<string> roadIds = new List<string>();
+        List<string> visibilities = new List<string>();
+        List<List<Vector3>> roadPointsList = new List<List<Vector3>>();
+
+        foreach (XmlNode wayNode in wayNodes)
+        {
+            XmlNodeList tagNodes = wayNode.SelectNodes("tag[@k='highway']");
+            if (tagNodes.Count == 0)
+                continue;
+
+            // Pobierz atrybuty "id" i "visible" dla drogi
+            string roadId = wayNode.Attributes["id"].Value;
+            string visible = wayNode.Attributes["visible"].Value;
+
+            // Pobierz wierzchołki (node) dla drogi
+            XmlNodeList ndNodes = wayNode.SelectNodes("nd");
+
+            // Zapisz wierzchołki w liście
+            List<Vector3> roadPoints = new List<Vector3>();
+            foreach (XmlNode ndNode in ndNodes)
+            {
+                string nodeId = ndNode.Attributes["ref"].Value;
+                XmlNode node = xmlDoc.SelectSingleNode("osm/node[@id='" + nodeId + "']");
+
+
+                float lat = float.Parse(node.Attributes["lat"].Value, CultureInfo.InvariantCulture);
+                float lon = float.Parse(node.Attributes["lon"].Value, CultureInfo.InvariantCulture);
+                Vector3 point = new Vector3(10f* lat, 0f, 10f* lon);
+                roadPoints.Add(point);
+            }
+
+            // Dodaj drogę i jej wierzchołki do struktur danych
+            roadIds.Add(roadId);
+            visibilities.Add(visible);
+            roadPointsList.Add(roadPoints);
+        }
+
+        // Twórz drogi w Unity na podstawie zebranych danych
+        for (int i = 0; i < roadIds.Count; i++)
+        {
+            CreateRoad(roadIds[i], visibilities[i], roadPointsList[i]);
+        }
     }
 
-   
-   public OsmData parseOsmData(){
-        OsmData osmData = new OsmData();
-        XmlDocument xmlDoc = new XmlDocument();
-        string filePath = Application.dataPath + "/Osm/map.xml";
 
-        xmlDoc.Load(filePath);
 
-        //xmlDoc.LoadXml(osmFile.text);
 
-        XmlNodeList nodeElements = xmlDoc.GetElementsByTagName("node");
-        XmlNodeList wayElements = xmlDoc.GetElementsByTagName("way");
+    void CreateRoad(string roadId, string visible, List<Vector3> roadPoints)
+    {
+         Debug.Log("roadId: " + roadId + " |  visible: " + visible + " |  roadPoints: ");
 
-        foreach(XmlNode node in nodeElements){
-            Debug.Log(node.Attributes["id"].Value);
-            Debug.Log(node.Attributes["lat"].Value);
-            Debug.Log(node.Attributes["lon"].Value);
-            string id = node.Attributes["id"].Value;
-            double lat = XmlConvert.ToDouble(node.Attributes["lat"].Value);
-            double lon = XmlConvert.ToDouble(node.Attributes["lon"].Value);
-            OsmNode osmNode = new OsmNode(lat, lon);
-            XmlNodeList tagElements = node.SelectNodes("tag");
-             foreach (XmlNode tag in tagElements){
-                string key = tag.Attributes["k"].Value;
-                string value = tag.Attributes["v"].Value;
-                //todo
-            }
-
-            //add to osm nodes
+        // Wyświetl informacje o punktach drogi
+        foreach (Vector3 point in roadPoints)
+        {
+            Debug.Log("Point: " + point);
         }
+        Color lineColor = Color.white;
+        // Dodaj komponent LineRenderer
+        GameObject roadObject = new GameObject("Road_" + roadId);
+        LineRenderer lineRenderer = roadObject.AddComponent<LineRenderer>();
 
-        foreach (XmlNode way in wayElements){
-            string id = way.Attributes["id"].Value;
-            XmlNodeList tagElements = way.SelectNodes("tag");
-            foreach (XmlNode tag in tagElements){
-                string key = tag.Attributes["k"].Value;
-                string value = tag.Attributes["v"].Value;
-                //todo
-            }
+        // Ustaw parametry LineRenderer
+        lineRenderer.positionCount = roadPoints.Count;
+        lineRenderer.startWidth = 0.001f;
+        lineRenderer.endWidth = 0.001f;
+        lineRenderer.startColor = lineColor;
+        lineRenderer.endColor = lineColor;
 
-            XmlNodeList ndElements = way.SelectNodes("nd");
-            List<OsmNode> roadPoints = new List<OsmNode>();
-            foreach (XmlNode nd in ndElements)
-            {
-                string refId = nd.Attributes["ref"].Value;
-                // todo
-            }
+        // Ustaw tryb mieszania materiału na Opaque
+        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        
+        // Ustaw pozycje punktów
+        lineRenderer.SetPositions(roadPoints.ToArray());
 
-            OsmRoad road = new OsmRoad(id, roadPoints);
-            osmData.AddRoad(road);
-        }
+        roadObject.transform.parent = this.transform.parent;
+    }
+    
 
-        return osmData;
-   }
  
 }
