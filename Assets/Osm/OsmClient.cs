@@ -4,7 +4,7 @@ using UnityEngine;
 using System;
 using System.Xml;
 using System.Globalization;
-
+using System;
 public class OsmClient : MonoBehaviour
 {
 
@@ -16,9 +16,10 @@ public class OsmClient : MonoBehaviour
     void Start()
     {
 
+        DateTime Start = DateTime.Now;
         loadWayNodes();
         //buildRoads();
-
+        Debug.Log("Old - Elapsed time = " + DateTime.Now.Subtract(Start).ToString());
 
         
     }
@@ -28,7 +29,7 @@ public class OsmClient : MonoBehaviour
     }
  
     void loadWayNodes(){
-        string xmlFilePath = Application.dataPath + "/Osm/map2.xml";
+        string xmlFilePath = Application.dataPath + "/Osm/map.xml";
         XmlDocument xmlDoc = new XmlDocument();
         xmlDoc.Load(xmlFilePath);
         wayNodes = xmlDoc.GetElementsByTagName("way");
@@ -72,10 +73,10 @@ public class OsmClient : MonoBehaviour
         }
 
         // Twórz drogi w Unity na podstawie zebranych danych
-        for (int i = 0; i < roadIds.Count; i++)
-        {
-            CreateRoad(roadIds[i], visibilities[i], roadPointsList[i]);
-        }
+        //for (int i = 0; i < roadIds.Count; i++)
+        //{
+            //CreateRoad(roadIds[i], visibilities[i], roadPointsList[i]);
+        //}
     }
 
 
