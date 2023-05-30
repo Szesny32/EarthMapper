@@ -8,21 +8,41 @@ using UnityEngine;
 
 public struct OsmData{
     public Dictionary<string, OsmNode> nodesDictionary;
-    public Dictionary<string, List<string>> waysDictionary;
+    public Dictionary<string, OsmWay> waysDictionary;
 }
 
 public struct OsmNode{
     public Vector3 point;
 }
 
+public struct OsmWay{
+    public List<string> osmNodes;
+    public string category;
+    public string type;
+}
+
+
 
 public class OsmClient : MonoBehaviour
 {
-    
-    void Start(){
+    private HashSet<string> mainCategories;
 
+    void Start(){
+        setMainCategories();
         //OsmData test = readOsmFile(Application.dataPath + "/Osm/map.xml");
     }
+
+    // Configuration
+    private void setMainCategories(){
+        mainCategories = new HashSet<string>();
+        mainCategories.Add("highway");
+    }
+
+    private bool isMainCategory(string category){
+        return mainCategories.Contains(category);
+    }
+
+
 
     public OsmData readOsmFile(string filePath){
         OsmData osmData;
@@ -57,22 +77,36 @@ public class OsmClient : MonoBehaviour
     }
 
     // OSM Ways
-    private Dictionary<string, List<string>> loadOsmWays(XmlDocument xmlDocument){
+    private Dictionary<string, OsmWay> loadOsmWays(XmlDocument xmlDocument){
         DateTime Start = DateTime.Now;
 
-        Dictionary<string, List<string>> resultDictionary = new Dictionary<string, List<string>>();
+        Dictionary<string, OsmWay> resultDictionary = new Dictionary<string, OsmWay>();
         XmlNodeList ways = xmlDocument.GetElementsByTagName("way");
         foreach(XmlNode way in ways){
             XmlNodeList nodes = way.SelectNodes("nd");
-            List<string> osmNodesRef = new List<string>(); //reference to nodes by id
+            OsmWay osmWay;
+            osmWay.osmNodes = new List<string>(); //reference to nodes by id
             foreach(XmlNode node in nodes){
-                osmNodesRef.Add(node.Attributes["ref"].Value);
+                osmWay.osmNodes.Add(node.Attributes["ref"].Value);
             }
-            resultDictionary.Add(way.Attributes["id"].Value, osmNodesRef);
+            KeyValuePair<string, string> mainCategory = getWayMainCategory(way);
+            osmWay.category = mainCategory.Key;
+            osmWay.type = mainCategory.Value;
+            resultDictionary.Add(way.Attributes["id"].Value, osmWay);
         }
 
         Debug.Log("OSM ways loading process completed - elapsed time: " + DateTime.Now.Subtract(Start).ToString());
         return resultDictionary;
+    }
+
+    KeyValuePair<string, string> getWayMainCategory(XmlNode way){
+        XmlNodeList tags = way.SelectNodes("tag");
+        foreach(XmlNode tag in tags){
+            if(isMainCategory(tag.Attributes["k"].Value))
+                return new KeyValuePair<string, string>(tag.Attributes["k"].Value, tag.Attributes["v"].Value); 
+        }
+        return new KeyValuePair<string, string>("", "");
+
     }
 
 
