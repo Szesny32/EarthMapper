@@ -29,6 +29,7 @@ public class OsmClient : MonoBehaviour
 
     void Start(){
         setMainCategories();
+       
         //OsmData test = readOsmFile(Application.dataPath + "/Osm/map.xml");
     }
 
@@ -36,6 +37,9 @@ public class OsmClient : MonoBehaviour
     private void setMainCategories(){
         mainCategories = new HashSet<string>();
         mainCategories.Add("highway");
+        mainCategories.Add("railway");
+        mainCategories.Add("building");
+        mainCategories.Add("natural");
     }
 
     private bool isMainCategory(string category){
@@ -48,6 +52,7 @@ public class OsmClient : MonoBehaviour
         OsmData osmData;
         XmlDocument xmlDoc = new XmlDocument();
         xmlDoc.Load(filePath);
+        test(xmlDoc);
         osmData.nodesDictionary = loadOsmNodes(xmlDoc);
         osmData.waysDictionary = loadOsmWays(xmlDoc);
         return osmData;
@@ -107,6 +112,28 @@ public class OsmClient : MonoBehaviour
         }
         return new KeyValuePair<string, string>("", "");
 
+    }
+
+    // test
+    void test(XmlDocument xmlDoc){
+
+        XmlNodeList tagNodes = xmlDoc.GetElementsByTagName("tag");
+        HashSet<string> uniqueTags = new HashSet<string>();
+
+        foreach (XmlNode tagNode in tagNodes)
+        {
+            XmlAttribute kAttribute = tagNode.Attributes["k"];
+            if (kAttribute != null)
+            {
+                string kValue = kAttribute.Value;
+                uniqueTags.Add(kValue);
+            }
+        }
+
+        foreach (string tag in uniqueTags)
+        {
+            Debug.Log(tag);
+        }
     }
 
 
