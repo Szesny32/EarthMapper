@@ -9,6 +9,7 @@ public class WorldBuilder : MonoBehaviour
     private OsmClient osmClient;
 
     public float scale = 10f;
+
     public float lineWidth = 0.001f; 
 
     GameObject highways; 
@@ -51,6 +52,9 @@ public class WorldBuilder : MonoBehaviour
     void generateChunk(OsmData chunkData){
         DateTime Start = DateTime.Now;
 
+        buildBounds(chunkData.osmBounds);
+
+
         foreach (KeyValuePair<string, OsmWay> way in chunkData.waysDictionary){
             List<Vector3> points = new List<Vector3>();
             foreach(string nodeId in way.Value.osmNodes){
@@ -84,6 +88,32 @@ public class WorldBuilder : MonoBehaviour
         Debug.Log("Chunk generation process completed - elapsed time: " + DateTime.Now.Subtract(Start).ToString());
     }
  
+
+    void buildBounds(OsmBounds osmBounds){
+        GameObject bounds = new GameObject("chunk");
+
+        Vector3[] vertices = new Vector3[4];
+        vertices[0] = new Vector3(osmBounds.minLatitude * scale, 0f, osmBounds.minLongitude * scale); 
+        vertices[1] = new Vector3(osmBounds.maxLatitude * scale, 0f, osmBounds.minLongitude * scale); 
+        vertices[2] = new Vector3(osmBounds.minLatitude * scale, 0f, osmBounds.maxLongitude * scale); 
+        vertices[3] = new Vector3(osmBounds.maxLatitude * scale, 0f, osmBounds.maxLongitude * scale);
+        
+        int[] triangles = new int[6] { 0, 2, 1, 1, 2, 3 };
+
+            Mesh mesh = new Mesh();
+            mesh.vertices = vertices;    
+            mesh.triangles = triangles;
+            mesh.RecalculateNormals();
+            
+
+            MeshFilter meshFilter = bounds.AddComponent<MeshFilter>();
+            meshFilter.mesh = mesh;
+            
+            MeshRenderer meshRenderer = bounds.AddComponent<MeshRenderer>();
+            meshRenderer.material = new Material(Shader.Find("Standard"));
+            meshRenderer.material.color = Color.white;
+
+    }
 
     void buildRoad(string id, List<Vector3> points){
             GameObject road = new GameObject("highway_" + id);

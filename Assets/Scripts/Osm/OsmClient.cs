@@ -7,6 +7,7 @@ using UnityEngine;
 
 
 public struct OsmData{
+    public OsmBounds osmBounds;
     public Dictionary<string, OsmNode> nodesDictionary;
     public Dictionary<string, OsmWay> waysDictionary;
 }
@@ -21,6 +22,12 @@ public struct OsmWay{
     public string type;
 }
 
+public struct OsmBounds{
+    public float minLatitude;
+    public float maxLatitude;
+    public float minLongitude;
+    public float maxLongitude;
+}
 
 
 public class OsmClient : MonoBehaviour
@@ -53,7 +60,8 @@ public class OsmClient : MonoBehaviour
         OsmData osmData;
         XmlDocument xmlDoc = new XmlDocument();
         xmlDoc.Load(filePath);
-        test(xmlDoc);
+        //test(xmlDoc);
+        osmData.osmBounds = getBounds(xmlDoc);
         osmData.nodesDictionary = loadOsmNodes(xmlDoc);
         osmData.waysDictionary = loadOsmWays(xmlDoc);
         return osmData;
@@ -114,6 +122,27 @@ public class OsmClient : MonoBehaviour
         return new KeyValuePair<string, string>("", "");
 
     }
+
+    // OSM bounds
+    public OsmBounds getBounds(XmlDocument xmlDoc){
+        OsmBounds bounds;
+        XmlNodeList nodeList = xmlDoc.GetElementsByTagName("bounds");
+        if(nodeList.Count > 0){
+            bounds.minLatitude = float.Parse(nodeList[0].Attributes["minlat"].Value, CultureInfo.InvariantCulture);
+            bounds.maxLatitude = float.Parse(nodeList[0].Attributes["maxlat"].Value, CultureInfo.InvariantCulture);
+            bounds.minLongitude = float.Parse(nodeList[0].Attributes["minlon"].Value, CultureInfo.InvariantCulture);
+            bounds.maxLongitude = float.Parse(nodeList[0].Attributes["maxlon"].Value, CultureInfo.InvariantCulture);
+        } else {
+            Debug.Log("Error: There is no bounds in file");
+            bounds.minLatitude = 0f;
+            bounds.maxLatitude = 0f;
+            bounds.minLongitude = 0f;
+            bounds.maxLongitude = 0f;
+        }
+    
+        return bounds;
+    }
+
 
     // test
     void test(XmlDocument xmlDoc){
