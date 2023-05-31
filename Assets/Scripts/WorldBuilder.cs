@@ -15,6 +15,7 @@ public class WorldBuilder : MonoBehaviour
     GameObject buildings; 
     GameObject railways; 
     GameObject naturals; 
+    GameObject landuses; 
     GameObject others; 
 
     void Start()
@@ -30,6 +31,9 @@ public class WorldBuilder : MonoBehaviour
 
         naturals = new GameObject("Naturals");
         naturals.transform.parent = this.transform.parent;
+
+        landuses = new GameObject("Landuses");
+        landuses.transform.parent = this.transform.parent;
 
         others = new GameObject("Others");
         others.transform.parent = this.transform.parent; 
@@ -67,6 +71,9 @@ public class WorldBuilder : MonoBehaviour
                 case "natural": 
                     buildNaturals(way.Key, points, way.Value.type);
                     break;
+                case "landuse": 
+                    buildLanduses(way.Key, points, way.Value.type);
+                    break;    
                 default:
                     buildOthers(way.Key, points);
                     break;
@@ -125,7 +132,7 @@ public class WorldBuilder : MonoBehaviour
 
     void buildNaturals(string id, List<Vector3> points, string type){
              if(type == "water"){
-                GameObject water = new GameObject("natural_" + id);
+                GameObject water = new GameObject("water_" + id);
 
                 Mesh mesh = new Mesh();
                 Vector3[] vertices = points.ToArray();
@@ -141,6 +148,12 @@ public class WorldBuilder : MonoBehaviour
                 
                 mesh.triangles = triangles;
                 mesh.RecalculateNormals();
+                Vector3[] normals = mesh.normals;
+
+                for (int i = 0; i < normals.Length; i++){
+                    normals[i] = Vector3.up;
+                }
+                mesh.normals = normals;
 
                 MeshFilter meshFilter = water.AddComponent<MeshFilter>();
                 meshFilter.mesh = mesh;
@@ -150,14 +163,256 @@ public class WorldBuilder : MonoBehaviour
                 meshRenderer.material.color = Color.blue;
                 
                 water.transform.parent = naturals.transform;
-            } else {
-                buildOthers(id, points);
+            } else if(type == "scrub"){
+                GameObject scrub = new GameObject("scrub_" + id);
+
+                Mesh mesh = new Mesh();
+                Vector3[] vertices = points.ToArray();
+                mesh.vertices = vertices;
+                int[] triangles = new int[(points.Count - 2) * 3];
+                int triangleIndex = 0;
+                for (int i = 1; i < points.Count - 1; i++){
+                    triangles[triangleIndex] = 0;
+                    triangles[triangleIndex + 1] = i;
+                    triangles[triangleIndex + 2] = i + 1;
+                    triangleIndex += 3;
+                }
+                
+                mesh.triangles = triangles;
+                mesh.RecalculateNormals();
+                Vector3[] normals = mesh.normals;
+
+                for (int i = 0; i < normals.Length; i++){
+                    normals[i] = Vector3.up;
+                }
+                mesh.normals = normals;
+
+                MeshFilter meshFilter = scrub.AddComponent<MeshFilter>();
+                meshFilter.mesh = mesh;
+                
+                MeshRenderer meshRenderer = scrub.AddComponent<MeshRenderer>();
+                meshRenderer.material = new Material(Shader.Find("Standard"));
+                meshRenderer.material.color = new Color(0.047f, 0.553f, 0.478f, 1.0f);
+                
+                scrub.transform.parent = naturals.transform;
+            } else if(type == "wood"){
+                GameObject wood = new GameObject("wood_" + id);
+
+                Mesh mesh = new Mesh();
+                Vector3[] vertices = points.ToArray();
+                mesh.vertices = vertices;
+                int[] triangles = new int[(points.Count - 2) * 3];
+                int triangleIndex = 0;
+                for (int i = 1; i < points.Count - 1; i++){
+                    triangles[triangleIndex] = 0;
+                    triangles[triangleIndex + 1] = i;
+                    triangles[triangleIndex + 2] = i + 1;
+                    triangleIndex += 3;
+                }
+                
+                mesh.triangles = triangles;
+                mesh.RecalculateNormals();
+                Vector3[] normals = mesh.normals;
+
+                for (int i = 0; i < normals.Length; i++){
+                    normals[i] = Vector3.up;
+                }
+                mesh.normals = normals;
+
+                MeshFilter meshFilter = wood.AddComponent<MeshFilter>();
+                meshFilter.mesh = mesh;
+                
+                MeshRenderer meshRenderer = wood.AddComponent<MeshRenderer>();
+                meshRenderer.material = new Material(Shader.Find("Standard"));
+                meshRenderer.material.color = new Color(0.035f, 0.863f, 0.659f, 1.0f);
+                
+                wood.transform.parent = naturals.transform;
+            } else if(type == "grassland"){
+                GameObject grassland = new GameObject("grassland_" + id);
+
+                Mesh mesh = new Mesh();
+                Vector3[] vertices = points.ToArray();
+                mesh.vertices = vertices;
+                int[] triangles = new int[(points.Count - 2) * 3];
+                int triangleIndex = 0;
+                for (int i = 1; i < points.Count - 1; i++){
+                    triangles[triangleIndex] = 0;
+                    triangles[triangleIndex + 1] = i;
+                    triangles[triangleIndex + 2] = i + 1;
+                    triangleIndex += 3;
+                }
+                
+                mesh.triangles = triangles;
+                mesh.RecalculateNormals();
+                Vector3[] normals = mesh.normals;
+
+                for (int i = 0; i < normals.Length; i++){
+                    normals[i] = Vector3.up;
+                }
+                mesh.normals = normals;
+
+                MeshFilter meshFilter = grassland.AddComponent<MeshFilter>();
+                meshFilter.mesh = mesh;
+                
+                MeshRenderer meshRenderer = grassland.AddComponent<MeshRenderer>();
+                meshRenderer.material = new Material(Shader.Find("Standard"));
+                meshRenderer.material.color = new Color(0.808f, 0.925f, 0.694f, 1.0f);
+                
+                grassland.transform.parent = naturals.transform;
             }
 
-       
 
-           
+            
+            
+            
+            else {
+                buildOthers(id, points);
+            } 
     }
+
+
+
+    void buildLanduses(string id, List<Vector3> points, string type){
+             if(type == "residential"){
+                GameObject residential = new GameObject("residential_" + id);
+
+                Mesh mesh = new Mesh();
+                Vector3[] vertices = points.ToArray();
+                mesh.vertices = vertices;
+                int[] triangles = new int[(points.Count - 2) * 3];
+                int triangleIndex = 0;
+                for (int i = 1; i < points.Count - 1; i++){
+                    triangles[triangleIndex] = 0;
+                    triangles[triangleIndex + 1] = i;
+                    triangles[triangleIndex + 2] = i + 1;
+                    triangleIndex += 3;
+                }
+                
+                mesh.triangles = triangles;
+                mesh.RecalculateNormals();
+                Vector3[] normals = mesh.normals;
+
+                for (int i = 0; i < normals.Length; i++){
+                    normals[i] = Vector3.up;
+                }
+                mesh.normals = normals;
+                MeshFilter meshFilter = residential.AddComponent<MeshFilter>();
+                meshFilter.mesh = mesh;
+                
+                MeshRenderer meshRenderer = residential.AddComponent<MeshRenderer>();
+                meshRenderer.material = new Material(Shader.Find("Standard"));
+                meshRenderer.material.color = new Color(0.055f, 0.118f, 0.118f, 1.0f);
+                
+                residential.transform.parent = landuses.transform;
+            } else  if(type == "landfill"){
+                GameObject landfill = new GameObject("landfill" + id);
+
+                Mesh mesh = new Mesh();
+                Vector3[] vertices = points.ToArray();
+                mesh.vertices = vertices;
+                int[] triangles = new int[(points.Count - 2) * 3];
+                int triangleIndex = 0;
+                for (int i = 1; i < points.Count - 1; i++){
+                    triangles[triangleIndex] = 0;
+                    triangles[triangleIndex + 1] = i;
+                    triangles[triangleIndex + 2] = i + 1;
+                    triangleIndex += 3;
+                }
+                
+                mesh.triangles = triangles;
+                mesh.RecalculateNormals();
+                Vector3[] normals = mesh.normals;
+
+                for (int i = 0; i < normals.Length; i++){
+                    normals[i] = Vector3.up;
+                }
+                mesh.normals = normals;
+
+                MeshFilter meshFilter = landfill.AddComponent<MeshFilter>();
+                meshFilter.mesh = mesh;
+                
+                MeshRenderer meshRenderer = landfill.AddComponent<MeshRenderer>();
+                meshRenderer.material = new Material(Shader.Find("Standard"));
+                meshRenderer.material.color = new Color(0.714f, 0.714f, 0.565f, 1.0f);
+                
+                landfill.transform.parent = landuses.transform;
+            } else  if(type == "meadow"){
+                GameObject meadow = new GameObject("meadow" + id);
+
+                Mesh mesh = new Mesh();
+                Vector3[] vertices = points.ToArray();
+                mesh.vertices = vertices;
+                int[] triangles = new int[(points.Count - 2) * 3];
+                int triangleIndex = 0;
+                for (int i = 1; i < points.Count - 1; i++){
+                    triangles[triangleIndex] = 0;
+                    triangles[triangleIndex + 1] = i;
+                    triangles[triangleIndex + 2] = i + 1;
+                    triangleIndex += 3;
+                }
+                
+                mesh.triangles = triangles;
+                mesh.RecalculateNormals();
+                Vector3[] normals = mesh.normals;
+
+                for (int i = 0; i < normals.Length; i++){
+                    normals[i] = Vector3.up;
+                }
+                mesh.normals = normals;
+
+                MeshFilter meshFilter = meadow.AddComponent<MeshFilter>();
+                meshFilter.mesh = mesh;
+                
+                MeshRenderer meshRenderer = meadow.AddComponent<MeshRenderer>();
+                meshRenderer.material = new Material(Shader.Find("Standard"));
+                meshRenderer.material.color = new Color(0.804f, 0.922f, 0.69f, 1.0f);
+                
+                meadow.transform.parent = landuses.transform;
+            } else  if(type == "industrial"){
+                GameObject industrial = new GameObject("industrial" + id);
+
+                Mesh mesh = new Mesh();
+                Vector3[] vertices = points.ToArray();
+                mesh.vertices = vertices;
+                int[] triangles = new int[(points.Count - 2) * 3];
+                int triangleIndex = 0;
+                for (int i = 1; i < points.Count - 1; i++){
+                    triangles[triangleIndex] = 0;
+                    triangles[triangleIndex + 1] = i;
+                    triangles[triangleIndex + 2] = i + 1;
+                    triangleIndex += 3;
+                }
+                
+                mesh.triangles = triangles;
+
+                mesh.RecalculateNormals();
+                Vector3[] normals = mesh.normals;
+
+                for (int i = 0; i < normals.Length; i++){
+                    normals[i] = Vector3.up;
+                }
+                mesh.normals = normals;
+
+                MeshFilter meshFilter = industrial.AddComponent<MeshFilter>();
+                meshFilter.mesh = mesh;
+                
+                MeshRenderer meshRenderer = industrial.AddComponent<MeshRenderer>();
+                meshRenderer.material = new Material(Shader.Find("Standard"));
+                meshRenderer.material.color = new Color(0.922f, 0.859f, 0.914f, 1.0f);
+                
+                industrial.transform.parent = landuses.transform;
+            } 
+            
+            
+            else {
+                buildOthers(id, points);
+            } 
+
+
+
+
+    }
+
 
     void buildOthers(string id, List<Vector3> points){
             GameObject other = new GameObject("entity_" + id);
