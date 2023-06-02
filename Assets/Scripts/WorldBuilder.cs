@@ -8,6 +8,7 @@ public class WorldBuilder : MonoBehaviour
     [SerializeField]
     private OsmClient osmClient;
 
+
     public float scale = 10f;
 
     public float lineWidth = 0.001f; 
@@ -41,6 +42,8 @@ public class WorldBuilder : MonoBehaviour
 
         OsmData chunkData = osmClient.readOsmFile(Application.dataPath + "/Osm/map.xml");
         generateChunk(chunkData);
+
+
     }
 
     
