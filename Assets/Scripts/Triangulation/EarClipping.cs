@@ -31,7 +31,7 @@ public class EarClipping : MonoBehaviour
        
 
     
-        //test();
+        test();
     
      
 
@@ -93,17 +93,18 @@ public class EarClipping : MonoBehaviour
         way.type = "none";
 
             List<Vector3> points = new List<Vector3>();
+            
         foreach(string nodeId in way.osmNodes){
                 if(nodesDictionary.ContainsKey(nodeId))
                     points.Add(nodesDictionary[nodeId].point);
-
-
+        }
+Debug.Log("points: "+string.Join(", ", points));
          GameObject testobj = new GameObject("testobj");
 
                 Mesh mesh = new Mesh();
         
                 mesh.vertices = points.ToArray();
-                mesh.triangles =  triangulation(way, nodesDictionary).ToArray();
+                mesh.triangles =  triangulation(points).ToArray();
                 mesh.RecalculateNormals();
                 Vector3[] normals = new Vector3[mesh.vertices.Length];
 
@@ -118,29 +119,29 @@ public class EarClipping : MonoBehaviour
                 MeshRenderer meshRenderer = testobj.AddComponent<MeshRenderer>();
                 meshRenderer.material = new Material(Shader.Find("Standard"));
                 meshRenderer.material.color = Color.blue;
-     }
+     
     }
  
-    public EarClippingProcessData initTriangulationData(OsmWay way,  Dictionary<string, OsmNode> nodesDictionary){
+    public EarClippingProcessData initTriangulationData(List<Vector3> points){
         EarClippingProcessData processData;
-        processData.isCounterClockwiseOrder = isCounterClockwiseOrder(way, nodesDictionary);
+        processData.isCounterClockwiseOrder = isCounterClockwiseOrder(points);
         processData.convexVertices = new HashSet<int>();
         processData.reflexVertices = new HashSet<int>();
         processData.earVertices = new List<int>();
         Debug.Log(processData.isCounterClockwiseOrder? "Counter-clockwise" : "Clockwise" );
 
-            for(int i = 0; i < way.osmNodes.Count; i++){
-                int prev = (i - 1 + way.osmNodes.Count) % way.osmNodes.Count;
-                int next = (i + 1 + way.osmNodes.Count) % way.osmNodes.Count;
+            for(int i = 0; i < points.Count; i++){
+                int prev = (i - 1 + points.Count) % points.Count;
+                int next = (i + 1 + points.Count) % points.Count;
 
-                Vector3 AM = nodesDictionary[way.osmNodes[prev]].point - nodesDictionary[way.osmNodes[i]].point;
-                Vector3 BM = nodesDictionary[way.osmNodes[next]].point - nodesDictionary[way.osmNodes[i]].point;
+                Vector3 AM = points[prev] - points[i];
+                Vector3 BM = points[next] - points[i];
 
                 float crossY = Vector3.Cross(AM, BM).y;
 
                 if (processData.isCounterClockwiseOrder? (crossY >= 0f ): (crossY < 0f)){
                     processData.convexVertices.Add(i);
-                    if(isEar(i, way, nodesDictionary)){
+                    if(isEar(i, points)){
                         processData.earVertices.Add(i);
                     }
                 }
@@ -158,44 +159,44 @@ public class EarClipping : MonoBehaviour
     }
 
 
-    List<int> triangulation(OsmWay way,  Dictionary<string, OsmNode> nodesDictionary){
-        EarClippingProcessData processData = initTriangulationData(way, nodesDictionary);
+    List<int> triangulation(List<Vector3> points){
+        EarClippingProcessData processData = initTriangulationData(points);
 
-        List<int> points = Enumerable.Range(0, way.osmNodes.Count).Select(i => i).ToList();
+        List<int> pointsIndex = Enumerable.Range(0, points.Count).Select(i => i).ToList();
         List<int> triangles = new List<int>();
-        int n = way.osmNodes.Count;
+        int n = points.Count;
         int noTriangles = 0;
         int E = processData.earVertices[0]; 
         while(noTriangles < n - 3){
 
 
-            int index = points.FindIndex(element => element == E);
-            int previousIndex = (index - 1 + points.Count) % points.Count;
-            int nextIndex = (index + 1 + points.Count) % points.Count;
+            int index = pointsIndex.FindIndex(element => element == E);
+            int previousIndex = (index - 1 + pointsIndex.Count) % pointsIndex.Count;
+            int nextIndex = (index + 1 + pointsIndex.Count) % pointsIndex.Count;
 
-            int previousPoint = points[previousIndex];
-            int nextPoint = points[nextIndex];
+            int previousPoint = pointsIndex[previousIndex];
+            int nextPoint = pointsIndex[nextIndex];
 
 
             Debug.Log(" E = "+ E);
            // Debug.Log("indexy: "+ previousIndex+" "+index+" "+nextIndex);
             //Debug.Log("punkty "+ points[previousIndex]+" "+points[index]+ " "+points[nextIndex]);
-            triangles.Add(points[previousIndex]);
-            triangles.Add(points[index]);
-            triangles.Add(points[nextIndex]);
+            triangles.Add(pointsIndex[previousIndex]);
+            triangles.Add(pointsIndex[index]);
+            triangles.Add(pointsIndex[nextIndex]);
             noTriangles++;
-            points.RemoveAt(index);
+            pointsIndex.RemoveAt(index);
 
 
-            previousIndex = points.FindIndex(element => element == previousPoint);
-            nextIndex = points.FindIndex(element => element == nextPoint);
+            previousIndex = pointsIndex.FindIndex(element => element == previousPoint);
+            nextIndex = pointsIndex.FindIndex(element => element == nextPoint);
 
             //Debug.Log("nowe indexy "+ previousIndex+" "+nextIndex);
-            if( !processData.earVertices.Contains(points[previousIndex])){
+            if( !processData.earVertices.Contains(pointsIndex[previousIndex])){
                 //Debug.Log("verify previousIndex "+ previousIndex);
-                if(verify(previousIndex, points, way, nodesDictionary, processData.isCounterClockwiseOrder)){
+                if(verify(previousIndex, pointsIndex, points, processData.isCounterClockwiseOrder)){
                 
-                    processData.earVertices.Add(points[previousIndex]);
+                    processData.earVertices.Add(pointsIndex[previousIndex]);
                     processData.earVertices.Sort();
                     //Debug.Log("prev "+ previousIndex+" jest earem");
                     //Debug.Log("prev "+ points[previousIndex]+" jest earem");
@@ -203,10 +204,10 @@ public class EarClipping : MonoBehaviour
                 }      
             }
             
-             if( !processData.earVertices.Contains(points[nextIndex])){
+             if( !processData.earVertices.Contains(pointsIndex[nextIndex])){
                 //Debug.Log("verify nextIndex "+ nextIndex);
-                if (verify(nextIndex, points, way, nodesDictionary, processData.isCounterClockwiseOrder)){
-                    processData.earVertices.Add(points[nextIndex]);
+                if (verify(nextIndex, pointsIndex,points, processData.isCounterClockwiseOrder)){
+                    processData.earVertices.Add(pointsIndex[nextIndex]);
                     processData.earVertices.Sort();
                     //Debug.Log("next "+ nextIndex+" jest earem");
                     //Debug.Log("next "+points[nextIndex]+" jest earem");
@@ -221,14 +222,14 @@ public class EarClipping : MonoBehaviour
             E = (earIndex < processData.earVertices.Count)? processData.earVertices[earIndex] : processData.earVertices[0];
         
             Debug.Log("Ear vertices: "+string.Join(", ", processData.earVertices));
-            Debug.Log("Points: "+string.Join(", ", points));
+            Debug.Log("Points: "+string.Join(", ", pointsIndex));
         
         
         }
 
-        triangles.Add(points[0]);
-        triangles.Add(points[1]);
-        triangles.Add(points[2]);
+        triangles.Add(pointsIndex[0]);
+        triangles.Add(pointsIndex[1]);
+        triangles.Add(pointsIndex[2]);
 
 
 
@@ -251,19 +252,19 @@ public class EarClipping : MonoBehaviour
     }
 
 
-    bool verify (int index, List<int> points, OsmWay way,Dictionary<string, OsmNode> nodesDictionary, bool order){
+    bool verify (int index, List<int> pointsIndex, List<Vector3> points, bool order){
       
       
-                int prev = (index - 1 + points.Count) % points.Count;
-                int next = (index + 1 + points.Count) % points.Count;
+                int prev = (index - 1 + pointsIndex.Count) % pointsIndex.Count;
+                int next = (index + 1 + pointsIndex.Count) % pointsIndex.Count;
 
-                Vector3 AM = nodesDictionary[way.osmNodes[points[prev]]].point - nodesDictionary[way.osmNodes[points[index]]].point;
-                Vector3 BM = nodesDictionary[way.osmNodes[points[next]]].point - nodesDictionary[way.osmNodes[points[index]]].point;
+                Vector3 AM = points[pointsIndex[prev]] - points[pointsIndex[index]];
+                Vector3 BM = points[pointsIndex[next]] - points[pointsIndex[index]];
 
                 float crossY = Vector3.Cross(AM, BM).y;
 
                 if (order? (crossY >= 0f ): (crossY < 0f)){
-                    if(isEar2(index, points, way, nodesDictionary)){
+                    if(isEar2(index, pointsIndex, points)){
                         return true;
                     }
                 }
@@ -274,30 +275,30 @@ public class EarClipping : MonoBehaviour
 
 
 
-    public bool isCounterClockwiseOrder(OsmWay way,  Dictionary<string, OsmNode> nodesDictionary){
+    public bool isCounterClockwiseOrder(List<Vector3> points){
         float area = 0f;
-        for(int i = 0; i < way.osmNodes.Count; i++){
-            int j = (i + 1) % way.osmNodes.Count;
-            area += nodesDictionary[way.osmNodes[i]].point.x * nodesDictionary[way.osmNodes[j]].point.z;
-            area -= nodesDictionary[way.osmNodes[j]].point.x * nodesDictionary[way.osmNodes[i]].point.z;
+        for(int i = 0; i < points.Count; i++){
+            int j = (i + 1) % points.Count;
+            area += points[i].x * points[j].z;
+            area -= points[j].x * points[i].z;
         }
         return (area > 0f);
     }
 
-    public bool isEar(int id, OsmWay way,  Dictionary<string, OsmNode> nodesDictionary){
-        int previousId = (id-1 + way.osmNodes.Count) % way.osmNodes.Count;
-        int nextId = (id+1 + way.osmNodes.Count) % way.osmNodes.Count;
+    public bool isEar(int id, List<Vector3> points){
+        int previousId = (id-1 + points.Count) % points.Count;
+        int nextId = (id+1 + points.Count) % points.Count;
         
-        Vector3 v0 = nodesDictionary[way.osmNodes[previousId]].point;
-        Vector3 v1 = nodesDictionary[way.osmNodes[id]].point;
-        Vector3 v2 = nodesDictionary[way.osmNodes[nextId]].point;
+        Vector3 v0 = points[previousId];
+        Vector3 v1 = points[id];
+        Vector3 v2 = points[nextId];
 
-        for (int i = 0; i < way.osmNodes.Count; i++){
+        for (int i = 0; i < points.Count; i++){
 
             if(i == previousId || i == id || i == nextId){
                 continue;
             }
-            Vector3 v = nodesDictionary[way.osmNodes[i]].point;
+            Vector3 v = points[i];
 
 
             float d1 = sign(v, v0, v1);
@@ -315,23 +316,23 @@ public class EarClipping : MonoBehaviour
         return true;
     }
 
-     public bool isEar2(int id, List<int> points,  OsmWay way, Dictionary<string, OsmNode> nodesDictionary){
-        int previousId = (id-1 + points.Count) % points.Count;
-        int nextId = (id+1 + points.Count) % points.Count;
+     public bool isEar2(int id, List<int> pointsIndex,  List<Vector3> points){
+        int previousId = (id-1 + pointsIndex.Count) % pointsIndex.Count;
+        int nextId = (id+1 + pointsIndex.Count) % pointsIndex.Count;
         
 
        //Debug.Log("isEar2: "+ id);     
 
-        Vector3 v0 = nodesDictionary[way.osmNodes[points[previousId]]].point;
-        Vector3 v1 = nodesDictionary[way.osmNodes[points[id]]].point;
-        Vector3 v2 = nodesDictionary[way.osmNodes[points[nextId]]].point;
+        Vector3 v0 = points[pointsIndex[previousId]];
+        Vector3 v1 = points[pointsIndex[id]];
+        Vector3 v2 = points[pointsIndex[nextId]];
         //Debug.Log("isEar2: " +points[previousId]+" "+points[id]+" "+points[nextId]);
-        for (int i = 0; i < points.Count; i++){
+        for (int i = 0; i < pointsIndex.Count; i++){
 
             if(i == previousId || i == id || i == nextId){
                 continue;
             }
-            Vector3 v = nodesDictionary[way.osmNodes[points[i]]].point;
+            Vector3 v = points[pointsIndex[i]];
 
 
             float d1 = sign(v, v0, v1);
