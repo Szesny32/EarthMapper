@@ -20,6 +20,9 @@ public class WorldBuilder : MonoBehaviour
     GameObject landuses; 
     GameObject others; 
 
+    [SerializeField]
+    private EarClipping earClipping;
+
     void Start()
     {
         highways = new GameObject("Highways");
