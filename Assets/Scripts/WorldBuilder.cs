@@ -26,7 +26,7 @@ public class WorldBuilder : MonoBehaviour
 
 
     private float offset_x = 0f;
-    private float offset_y = 0f;
+    private float offset_z = 0f;
 
     void Start()
     {
@@ -51,8 +51,8 @@ public class WorldBuilder : MonoBehaviour
         OsmData chunkData = osmClient.readOsmFile(Application.dataPath + "/Osm/map.xml");
         
         offset_x = chunkData.osmBounds.minLatitude;
-        offset_y = chunkData.osmBounds.minLongitude;
-        Debug.Log("Offset = x: "+offset_x+" y: "+offset_y);
+        offset_z = chunkData.osmBounds.minLongitude;
+        Debug.Log("Offset = x: "+offset_x+" y: "+offset_z);
 
         generateChunk(chunkData);
 
@@ -75,18 +75,18 @@ public class WorldBuilder : MonoBehaviour
             List<Vector3> points = new List<Vector3>();
             foreach(string nodeId in way.Value.osmNodes){
                 if(chunkData.nodesDictionary.ContainsKey(nodeId))
-                    points.Add((chunkData.nodesDictionary[nodeId].point - new Vector3(offset_x, 0f, offset_y))* scale);
+                    points.Add((chunkData.nodesDictionary[nodeId].point - new Vector3(offset_x, 0f, offset_z))* scale);
             }
 
             switch(way.Value.category){
                 case "highway": 
-                    buildRoad(way.Key, points);
+                    buildWithLines("highway_"+way.Key, points, Color.green, highways);
                     break;
                 case "building": 
-                    buildBuilding(way.Key, points);
+                    buildWithLines("building_"+way.Key, points, new Color(0.5f, 1f, 0f, 1f), buildings);
                     break;
                 case "railway": 
-                    buildRailways(way.Key, points);
+                    buildWithLines("railway_"+way.Key, points, Color.yellow, railways);
                     break;
                 case "natural": 
                     buildNaturals(way.Key, points.GetRange(0, points.Count - 1), way.Value.type);
@@ -131,267 +131,46 @@ public class WorldBuilder : MonoBehaviour
 
     }
 
-    void buildRoad(string id, List<Vector3> points){
-            GameObject road = new GameObject("highway_" + id);
-Debug.Log("Build : highway_" + id);
-            LineRenderer lineRenderer = road.AddComponent<LineRenderer>();
+    void buildWithLines(string id, List<Vector3> points, Color lineColor, GameObject parent){
+            GameObject newGameObject = new GameObject(id);
+            LineRenderer lineRenderer = newGameObject.AddComponent<LineRenderer>();
             lineRenderer.positionCount = points.Count;
             lineRenderer.startWidth = lineWidth;
             lineRenderer.endWidth = lineWidth;
 
-            lineRenderer.startColor = Color.green;
-            lineRenderer.endColor = Color.green;
+            lineRenderer.startColor = lineColor;
+            lineRenderer.endColor = lineColor;
             lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-            lineRenderer.SetPositions(points.ToArray());
-            road.transform.parent = highways.transform;
+            lineRenderer.SetPositions(points.Select(p => new Vector3(p.x, 0.01f, p.z)).ToArray());
+            newGameObject.transform.parent = parent.transform;
     }
 
-    void buildBuilding(string id, List<Vector3> points){
-            GameObject building = new GameObject("building_" + id);
-Debug.Log("Build : building_" + id);
-            LineRenderer lineRenderer = building.AddComponent<LineRenderer>();
-            lineRenderer.positionCount = points.Count;
-            lineRenderer.startWidth = lineWidth;
-            lineRenderer.endWidth = lineWidth;
-
-            lineRenderer.startColor = new Color(0.5f, 1f, 0f, 1f);
-            lineRenderer.endColor = new Color(0.5f, 1f, 0f, 1f);
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-            lineRenderer.SetPositions(points.ToArray());
-            building.transform.parent = buildings.transform;
-    }
-
-    void buildRailways(string id, List<Vector3> points){
-            GameObject railway = new GameObject("railway_" + id);
-Debug.Log("Build : railway_" + id);
-            LineRenderer lineRenderer = railway.AddComponent<LineRenderer>();
-            lineRenderer.positionCount = points.Count;
-            lineRenderer.startWidth = lineWidth;
-            lineRenderer.endWidth = lineWidth;
-
-            lineRenderer.startColor = Color.yellow;
-            lineRenderer.endColor = Color.yellow;
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-            lineRenderer.SetPositions(points.ToArray());
-            railway.transform.parent = railways.transform;
-    }
 
     void buildNaturals(string id, List<Vector3> points, string type){
              if(type == "water"){
-                GameObject water = new GameObject("water_" + id);
-Debug.Log("Build : water_" + id);
-                Mesh mesh = new Mesh();
-                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.003f, p.z)).ToArray();
-                mesh.vertices = vertices;
-
-                
-                mesh.triangles = earClipping.triangulation(points).ToArray();
-                mesh.RecalculateNormals();
-                Vector3[] normals = mesh.normals;
-
-                for (int i = 0; i < normals.Length; i++){
-                    normals[i] = Vector3.up;
-                }
-                mesh.normals = normals;
-
-                MeshFilter meshFilter = water.AddComponent<MeshFilter>();
-                meshFilter.mesh = mesh;
-                
-                MeshRenderer meshRenderer = water.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Standard"));
-                meshRenderer.material.color = Color.blue;
-                
-                water.transform.parent = naturals.transform;
+                buildMesh("water_"+id, 0.005f, points, Color.blue, naturals);
             } else if(type == "scrub"){
-                GameObject scrub = new GameObject("scrub_" + id);
-Debug.Log("Build : scrub_" + id);
-                Mesh mesh = new Mesh();
-                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.002f, p.z)).ToArray();
-                mesh.vertices = vertices;
-
-                
-                mesh.triangles = earClipping.triangulation(points).ToArray();
-                mesh.RecalculateNormals();
-                Vector3[] normals = mesh.normals;
-
-                for (int i = 0; i < normals.Length; i++){
-                    normals[i] = Vector3.up;
-                }
-                mesh.normals = normals;
-
-                MeshFilter meshFilter = scrub.AddComponent<MeshFilter>();
-                meshFilter.mesh = mesh;
-                
-                MeshRenderer meshRenderer = scrub.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Standard"));
-                meshRenderer.material.color = new Color(0.047f, 0.553f, 0.478f, 1.0f);
-                
-                scrub.transform.parent = naturals.transform;
+                buildMesh("scrub_"+id, 0.004f, points, new Color(0.047f, 0.553f, 0.478f, 1.0f), naturals);
             } else if(type == "wood"){
-                GameObject wood = new GameObject("wood_" + id);
-Debug.Log("Build : wood_" + id);
-                Mesh mesh = new Mesh();
-                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.004f, p.z)).ToArray();
-                mesh.vertices = vertices;
-
-
-                mesh.triangles = earClipping.triangulation(points).ToArray();
-                mesh.RecalculateNormals();
-                Vector3[] normals = mesh.normals;
-
-                for (int i = 0; i < normals.Length; i++){
-                    normals[i] = Vector3.up;
-                }
-                mesh.normals = normals;
-
-                MeshFilter meshFilter = wood.AddComponent<MeshFilter>();
-                meshFilter.mesh = mesh;
-                
-                MeshRenderer meshRenderer = wood.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Standard"));
-                meshRenderer.material.color = new Color(0.035f, 0.863f, 0.659f, 1.0f);
-                
-                wood.transform.parent = naturals.transform;
+                buildMesh("wood_"+id, 0.006f, points, new Color(0.035f, 0.863f, 0.659f, 1.0f), naturals);
             } else if(type == "grassland"){
-                GameObject grassland = new GameObject("grassland_" + id);
-Debug.Log("Build : grassland_" + id);
-                Mesh mesh = new Mesh();
-                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.0f, p.z)).ToArray();
-                mesh.vertices = vertices;
- 
-                mesh.triangles = earClipping.triangulation(points).ToArray();
-                mesh.RecalculateNormals();
-                Vector3[] normals = mesh.normals;
-
-                for (int i = 0; i < normals.Length; i++){
-                    normals[i] = Vector3.up;
-                }
-                mesh.normals = normals;
-
-                MeshFilter meshFilter = grassland.AddComponent<MeshFilter>();
-                meshFilter.mesh = mesh;
-                
-                MeshRenderer meshRenderer = grassland.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Standard"));
-                meshRenderer.material.color = new Color(0.808f, 0.925f, 0.694f, 1.0f);
-                
-                grassland.transform.parent = naturals.transform;
-            }
-
-
-            
-            
-            
-            else {
+                buildMesh("grassland_"+id, 0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), naturals);
+            } else {
                 buildOthers(id, points);
             } 
     }
-
 
 
     void buildLanduses(string id, List<Vector3> points, string type){
              if(type == "residential"){
-                GameObject residential = new GameObject("residential_" + id);
-Debug.Log("Build : residential_" + id);
-                Mesh mesh = new Mesh();
-                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.007f, p.z)).ToArray();
-                mesh.vertices = vertices;
-
-                
-                mesh.triangles = earClipping.triangulation(points).ToArray();
-                mesh.RecalculateNormals();
-                Vector3[] normals = mesh.normals;
-
-                for (int i = 0; i < normals.Length; i++){
-                    normals[i] = Vector3.up;
-                }
-                mesh.normals = normals;
-                MeshFilter meshFilter = residential.AddComponent<MeshFilter>();
-                meshFilter.mesh = mesh;
-                
-                MeshRenderer meshRenderer = residential.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Standard"));
-                meshRenderer.material.color = new Color(0.055f, 0.118f, 0.118f, 1.0f);
-                
-                residential.transform.parent = landuses.transform;
+                buildMesh("residential"+id, 0.007f, points, new Color(0.055f, 0.118f, 0.118f, 1.0f), landuses);
             } else  if(type == "landfill"){
-                GameObject landfill = new GameObject("landfill" + id);
-Debug.Log("Build : landfill" + id);
-                Mesh mesh = new Mesh();
-                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.006f, p.z)).ToArray();
-                mesh.vertices = vertices;
-
-                mesh.triangles = earClipping.triangulation(points).ToArray();
-                mesh.RecalculateNormals();
-                Vector3[] normals = mesh.normals;
-
-                for (int i = 0; i < normals.Length; i++){
-                    normals[i] = Vector3.up;
-                }
-                mesh.normals = normals;
-
-                MeshFilter meshFilter = landfill.AddComponent<MeshFilter>();
-                meshFilter.mesh = mesh;
-                
-                MeshRenderer meshRenderer = landfill.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Standard"));
-                meshRenderer.material.color = new Color(0.714f, 0.714f, 0.565f, 1.0f);
-                
-                landfill.transform.parent = landuses.transform;
+                buildMesh("landfill"+id, 0.002f, points, new Color(0.714f, 0.714f, 0.565f, 1.0f), landuses);
             } else  if(type == "meadow"){
-                GameObject meadow = new GameObject("meadow" + id);
-Debug.Log("Build : meadow" + id);
-                Mesh mesh = new Mesh();
-                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.001f, p.z)).ToArray();
-                mesh.vertices = vertices;
- 
-                
-                mesh.triangles = earClipping.triangulation(points).ToArray();
-                mesh.RecalculateNormals();
-                Vector3[] normals = mesh.normals;
-
-                for (int i = 0; i < normals.Length; i++){
-                    normals[i] = Vector3.up;
-                }
-                mesh.normals = normals;
-
-                MeshFilter meshFilter = meadow.AddComponent<MeshFilter>();
-                meshFilter.mesh = mesh;
-                
-                MeshRenderer meshRenderer = meadow.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Standard"));
-                meshRenderer.material.color = new Color(0.804f, 0.922f, 0.69f, 1.0f);
-                
-                meadow.transform.parent = landuses.transform;
+                buildMesh("meadow"+id, 0.001f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses);   
             } else  if(type == "industrial"){
-                GameObject industrial = new GameObject("industrial" + id);
-Debug.Log("Build : industrial" + id);
-                Mesh mesh = new Mesh();
-                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.005f, p.z)).ToArray();
-                mesh.vertices = vertices;
-
-                mesh.triangles = earClipping.triangulation(points).ToArray();
-
-                mesh.RecalculateNormals();
-                Vector3[] normals = mesh.normals;
-
-                for (int i = 0; i < normals.Length; i++){
-                    normals[i] = Vector3.up;
-                }
-                mesh.normals = normals;
-
-                MeshFilter meshFilter = industrial.AddComponent<MeshFilter>();
-                meshFilter.mesh = mesh;
-                
-                MeshRenderer meshRenderer = industrial.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Standard"));
-                meshRenderer.material.color = new Color(0.922f, 0.859f, 0.914f, 1.0f);
-                
-                industrial.transform.parent = landuses.transform;
-            } 
-            
-            
-            else {
+                buildMesh("industrial"+id, 0.003f, points, new Color(0.922f, 0.859f, 0.914f, 1.0f), landuses); 
+            } else {
                 buildOthers(id, points);
             } 
 
@@ -400,6 +179,34 @@ Debug.Log("Build : industrial" + id);
 
     }
 
+
+
+    void buildMesh(string id, float offset_y, List<Vector3> points, Color meshColor, GameObject parent){
+           GameObject newGameObject = new GameObject(id);
+//Debug.Log("Build : "+id);
+                Mesh mesh = new Mesh();
+                Vector3[] vertices = points.Select(p => new Vector3(p.x, offset_y, p.z)).ToArray();
+                mesh.vertices = vertices;
+
+                mesh.triangles = earClipping.triangulation(points).ToArray();
+
+                mesh.RecalculateNormals();
+                Vector3[] normals = mesh.normals;
+
+                for (int i = 0; i < normals.Length; i++){
+                    normals[i] = Vector3.up;
+                }
+                mesh.normals = normals;
+
+                MeshFilter meshFilter = newGameObject.AddComponent<MeshFilter>();
+                meshFilter.mesh = mesh;
+                
+                MeshRenderer meshRenderer = newGameObject.AddComponent<MeshRenderer>();
+                meshRenderer.material = new Material(Shader.Find("Standard"));
+                meshRenderer.material.color = meshColor;
+                
+                newGameObject.transform.parent = parent.transform;
+    }
 
     void buildOthers(string id, List<Vector3> points){
             GameObject other = new GameObject("entity_" + id);

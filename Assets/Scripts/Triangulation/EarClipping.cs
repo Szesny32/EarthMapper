@@ -98,7 +98,7 @@ public class EarClipping : MonoBehaviour
                 if(nodesDictionary.ContainsKey(nodeId))
                     points.Add(nodesDictionary[nodeId].point);
         }
-Debug.Log("points: "+string.Join(", ", points));
+//Debug.Log("points: "+string.Join(", ", points));
          GameObject testobj = new GameObject("testobj");
 
                 Mesh mesh = new Mesh();
@@ -128,7 +128,7 @@ Debug.Log("points: "+string.Join(", ", points));
         processData.convexVertices = new HashSet<int>();
         processData.reflexVertices = new HashSet<int>();
         processData.earVertices = new List<int>();
-        Debug.Log(processData.isCounterClockwiseOrder? "Counter-clockwise" : "Clockwise" );
+//Debug.Log(processData.isCounterClockwiseOrder? "Counter-clockwise" : "Clockwise" );
 
             for(int i = 0; i < points.Count; i++){
                 int prev = (i - 1 + points.Count) % points.Count;
@@ -150,9 +150,9 @@ Debug.Log("points: "+string.Join(", ", points));
                     processData.reflexVertices.Add(i); //Debug.Log("V"+way.osmNodes[i] + " jest wypukły.");
             }
 
-            Debug.Log("Convex vertices: "+string.Join(", ", processData.convexVertices));
-            Debug.Log("Reflex vertices: "+string.Join(", ", processData.reflexVertices));
-            Debug.Log("Ear vertices: "+string.Join(", ", processData.earVertices));
+//Debug.Log("Convex vertices: "+string.Join(", ", processData.convexVertices));
+//Debug.Log("Reflex vertices: "+string.Join(", ", processData.reflexVertices));
+//Debug.Log("Ear vertices: "+string.Join(", ", processData.earVertices));
             
 
         return processData;
@@ -178,7 +178,7 @@ Debug.Log("points: "+string.Join(", ", points));
             int nextPoint = pointsIndex[nextIndex];
 
 
-            Debug.Log(" E = "+ E);
+//Debug.Log(" E = "+ E);
            // Debug.Log("indexy: "+ previousIndex+" "+index+" "+nextIndex);
             //Debug.Log("punkty "+ points[previousIndex]+" "+points[index]+ " "+points[nextIndex]);
             triangles.Add(pointsIndex[previousIndex]);
@@ -199,7 +199,7 @@ Debug.Log("points: "+string.Join(", ", points));
                     processData.earVertices.Add(pointsIndex[previousIndex]);
                     processData.earVertices.Sort();
                     //Debug.Log("prev "+ previousIndex+" jest earem");
-                    Debug.Log("prev "+ pointsIndex[previousIndex]+" jest earem");
+//Debug.Log("prev "+ pointsIndex[previousIndex]+" jest earem");
 
                 }      
             }
@@ -210,7 +210,7 @@ Debug.Log("points: "+string.Join(", ", points));
                     processData.earVertices.Add(pointsIndex[nextIndex]);
                     processData.earVertices.Sort();
                     //Debug.Log("next "+ nextIndex+" jest earem");
-                    Debug.Log("next "+pointsIndex[nextIndex]+" jest earem");
+//Debug.Log("next "+pointsIndex[nextIndex]+" jest earem");
                 }
             }
            
@@ -222,8 +222,8 @@ Debug.Log("points: "+string.Join(", ", points));
             if(processData.earVertices.Count > 0)
                 E = (earIndex < processData.earVertices.Count)? processData.earVertices[earIndex] : processData.earVertices[0];
         
-            Debug.Log("Ear vertices: "+string.Join(", ", processData.earVertices));
-            Debug.Log("Points: "+string.Join(", ", pointsIndex));
+//Debug.Log("Ear vertices: "+string.Join(", ", processData.earVertices));
+//Debug.Log("Points: "+string.Join(", ", pointsIndex));
         
         
         }
@@ -248,7 +248,7 @@ Debug.Log("points: "+string.Join(", ", points));
 
 
 
-        Debug.Log("Triangles vertices: "+string.Join(", ", triangles));
+//Debug.Log("Triangles vertices: "+string.Join(", ", triangles));
         return triangles;
     }
 
