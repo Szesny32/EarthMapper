@@ -819,7 +819,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   osmClient: {fileID: 1204268958}
-  scale: 100
+  scale: 1000
   lineWidth: 0.01
   earClipping: {fileID: 1713857452}
 --- !u!4 &933319805

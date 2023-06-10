@@ -95,7 +95,7 @@ public class WorldBuilder : MonoBehaviour
                     buildLanduses(way.Key, points.GetRange(0, points.Count - 1), way.Value.type);
                     break;    
                 default:
-                    buildOthers(way.Key, points);
+                    buildOthers(way.Value.category + way.Key, points);
                     break;
             }
 
@@ -148,30 +148,41 @@ public class WorldBuilder : MonoBehaviour
 
     void buildNaturals(string id, List<Vector3> points, string type){
              if(type == "water"){
-                buildMesh("water_"+id, 0.005f, points, Color.blue, naturals);
+                buildMesh("water_"+id, 0.006f, points, Color.blue, naturals);
             } else if(type == "scrub"){
-                buildMesh("scrub_"+id, 0.004f, points, new Color(0.047f, 0.553f, 0.478f, 1.0f), naturals);
+                buildMesh("scrub_"+id, 0.005f, points, new Color(0.047f, 0.553f, 0.478f, 1.0f), naturals);
             } else if(type == "wood"){
-                buildMesh("wood_"+id, 0.006f, points, new Color(0.035f, 0.863f, 0.659f, 1.0f), naturals);
+                buildMesh("wood_"+id, 0.007f, points, new Color(0.035f, 0.863f, 0.659f, 1.0f), naturals);
             } else if(type == "grassland"){
                 buildMesh("grassland_"+id, 0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), naturals);
+            } else if(type == "heath"){
+                buildMesh("heath"+id, 0f, points, new Color(0.839f, 0.851f, 0.624f, 1.0f), naturals);
             } else {
-                buildOthers(id, points);
+                buildOthers(type+id, points);
             } 
     }
 
 
     void buildLanduses(string id, List<Vector3> points, string type){
              if(type == "residential"){
-                buildMesh("residential"+id, 0.007f, points, new Color(0.055f, 0.118f, 0.118f, 1.0f), landuses);
+                buildMesh("residential"+id, 0.009f, points, new Color(0.055f, 0.118f, 0.118f, 1.0f), landuses);
             } else  if(type == "landfill"){
-                buildMesh("landfill"+id, 0.002f, points, new Color(0.714f, 0.714f, 0.565f, 1.0f), landuses);
+                buildMesh("landfill"+id, 0.003f, points, new Color(0.714f, 0.714f, 0.565f, 1.0f), landuses);
             } else  if(type == "meadow"){
-                buildMesh("meadow"+id, 0.001f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses);   
+                buildMesh("meadow"+id, 0.002f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses);   
             } else  if(type == "industrial"){
-                buildMesh("industrial"+id, 0.003f, points, new Color(0.922f, 0.859f, 0.914f, 1.0f), landuses); 
-            } else {
-                buildOthers(id, points);
+                buildMesh("industrial"+id, 0.004f, points, new Color(0.922f, 0.859f, 0.914f, 1.0f), landuses); 
+            } else if(type =="forest"){
+                buildMesh("forest"+id, 0.008f, points, new Color(0.616f, 0.792f, 0.541f, 1.0f), landuses); 
+            } else if(type =="farmland"){
+                buildMesh("farmland"+id, 0.001f, points, new Color(0.933f, 0.941f, 0.835f, 1.0f), landuses); 
+            } else if(type =="grass"){
+                buildMesh("grass"+id, 0.0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), landuses); 
+            } else if(type =="education"){
+                buildMesh("education"+id, 0.010f, points, new Color(0.549f, 0.263f, 0.039f, 1.0f), landuses); 
+            }
+            else {
+                buildOthers(type+id, points);
             } 
 
 
@@ -209,7 +220,7 @@ public class WorldBuilder : MonoBehaviour
     }
 
     void buildOthers(string id, List<Vector3> points){
-            GameObject other = new GameObject("entity_" + id);
+            GameObject other = new GameObject(id);
 
             LineRenderer lineRenderer = other.AddComponent<LineRenderer>();
             lineRenderer.positionCount = points.Count;
