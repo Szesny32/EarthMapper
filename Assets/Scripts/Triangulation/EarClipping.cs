@@ -31,7 +31,7 @@ public class EarClipping : MonoBehaviour
        
 
     
-        test();
+       // test();
     
      
 
@@ -159,7 +159,7 @@ Debug.Log("points: "+string.Join(", ", points));
     }
 
 
-    List<int> triangulation(List<Vector3> points){
+    public List<int> triangulation(List<Vector3> points){
         EarClippingProcessData processData = initTriangulationData(points);
 
         List<int> pointsIndex = Enumerable.Range(0, points.Count).Select(i => i).ToList();
@@ -167,7 +167,7 @@ Debug.Log("points: "+string.Join(", ", points));
         int n = points.Count;
         int noTriangles = 0;
         int E = processData.earVertices[0]; 
-        while(noTriangles < n - 3){
+        while(noTriangles < n - 3 && processData.earVertices.Count >0){
 
 
             int index = pointsIndex.FindIndex(element => element == E);
@@ -199,7 +199,7 @@ Debug.Log("points: "+string.Join(", ", points));
                     processData.earVertices.Add(pointsIndex[previousIndex]);
                     processData.earVertices.Sort();
                     //Debug.Log("prev "+ previousIndex+" jest earem");
-                    //Debug.Log("prev "+ points[previousIndex]+" jest earem");
+                    Debug.Log("prev "+ pointsIndex[previousIndex]+" jest earem");
 
                 }      
             }
@@ -210,7 +210,7 @@ Debug.Log("points: "+string.Join(", ", points));
                     processData.earVertices.Add(pointsIndex[nextIndex]);
                     processData.earVertices.Sort();
                     //Debug.Log("next "+ nextIndex+" jest earem");
-                    //Debug.Log("next "+points[nextIndex]+" jest earem");
+                    Debug.Log("next "+pointsIndex[nextIndex]+" jest earem");
                 }
             }
            
@@ -219,7 +219,8 @@ Debug.Log("points: "+string.Join(", ", points));
             
             int earIndex = processData.earVertices.FindIndex(element => element == E);
             processData.earVertices.RemoveAt(earIndex);
-            E = (earIndex < processData.earVertices.Count)? processData.earVertices[earIndex] : processData.earVertices[0];
+            if(processData.earVertices.Count > 0)
+                E = (earIndex < processData.earVertices.Count)? processData.earVertices[earIndex] : processData.earVertices[0];
         
             Debug.Log("Ear vertices: "+string.Join(", ", processData.earVertices));
             Debug.Log("Points: "+string.Join(", ", pointsIndex));

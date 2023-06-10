@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 
 public class WorldBuilder : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class WorldBuilder : MonoBehaviour
     private OsmClient osmClient;
 
 
-    public float scale = 10f;
+    public float scale = 1000f;
 
     public float lineWidth = 0.001f; 
 
@@ -22,6 +23,10 @@ public class WorldBuilder : MonoBehaviour
 
     [SerializeField]
     private EarClipping earClipping;
+
+
+    private float offset_x = 0f;
+    private float offset_y = 0f;
 
     void Start()
     {
@@ -44,6 +49,11 @@ public class WorldBuilder : MonoBehaviour
         others.transform.parent = this.transform.parent; 
 
         OsmData chunkData = osmClient.readOsmFile(Application.dataPath + "/Osm/map.xml");
+        
+        offset_x = chunkData.osmBounds.minLatitude;
+        offset_y = chunkData.osmBounds.minLongitude;
+        Debug.Log("Offset = x: "+offset_x+" y: "+offset_y);
+
         generateChunk(chunkData);
 
 
@@ -65,7 +75,7 @@ public class WorldBuilder : MonoBehaviour
             List<Vector3> points = new List<Vector3>();
             foreach(string nodeId in way.Value.osmNodes){
                 if(chunkData.nodesDictionary.ContainsKey(nodeId))
-                    points.Add(chunkData.nodesDictionary[nodeId].point * scale);
+                    points.Add((chunkData.nodesDictionary[nodeId].point - new Vector3(offset_x, 0f, offset_y))* scale);
             }
 
             switch(way.Value.category){
@@ -79,10 +89,10 @@ public class WorldBuilder : MonoBehaviour
                     buildRailways(way.Key, points);
                     break;
                 case "natural": 
-                    buildNaturals(way.Key, points, way.Value.type);
+                    buildNaturals(way.Key, points.GetRange(0, points.Count - 1), way.Value.type);
                     break;
                 case "landuse": 
-                    buildLanduses(way.Key, points, way.Value.type);
+                    buildLanduses(way.Key, points.GetRange(0, points.Count - 1), way.Value.type);
                     break;    
                 default:
                     buildOthers(way.Key, points);
@@ -123,7 +133,7 @@ public class WorldBuilder : MonoBehaviour
 
     void buildRoad(string id, List<Vector3> points){
             GameObject road = new GameObject("highway_" + id);
-
+Debug.Log("Build : highway_" + id);
             LineRenderer lineRenderer = road.AddComponent<LineRenderer>();
             lineRenderer.positionCount = points.Count;
             lineRenderer.startWidth = lineWidth;
@@ -138,7 +148,7 @@ public class WorldBuilder : MonoBehaviour
 
     void buildBuilding(string id, List<Vector3> points){
             GameObject building = new GameObject("building_" + id);
-
+Debug.Log("Build : building_" + id);
             LineRenderer lineRenderer = building.AddComponent<LineRenderer>();
             lineRenderer.positionCount = points.Count;
             lineRenderer.startWidth = lineWidth;
@@ -153,7 +163,7 @@ public class WorldBuilder : MonoBehaviour
 
     void buildRailways(string id, List<Vector3> points){
             GameObject railway = new GameObject("railway_" + id);
-
+Debug.Log("Build : railway_" + id);
             LineRenderer lineRenderer = railway.AddComponent<LineRenderer>();
             lineRenderer.positionCount = points.Count;
             lineRenderer.startWidth = lineWidth;
@@ -169,20 +179,13 @@ public class WorldBuilder : MonoBehaviour
     void buildNaturals(string id, List<Vector3> points, string type){
              if(type == "water"){
                 GameObject water = new GameObject("water_" + id);
-
+Debug.Log("Build : water_" + id);
                 Mesh mesh = new Mesh();
-                Vector3[] vertices = points.ToArray();
+                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.003f, p.z)).ToArray();
                 mesh.vertices = vertices;
-                int[] triangles = new int[(points.Count - 2) * 3];
-                int triangleIndex = 0;
-                for (int i = 1; i < points.Count - 1; i++){
-                    triangles[triangleIndex] = 0;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = i + 1;
-                    triangleIndex += 3;
-                }
+
                 
-                mesh.triangles = triangles;
+                mesh.triangles = earClipping.triangulation(points).ToArray();
                 mesh.RecalculateNormals();
                 Vector3[] normals = mesh.normals;
 
@@ -201,20 +204,13 @@ public class WorldBuilder : MonoBehaviour
                 water.transform.parent = naturals.transform;
             } else if(type == "scrub"){
                 GameObject scrub = new GameObject("scrub_" + id);
-
+Debug.Log("Build : scrub_" + id);
                 Mesh mesh = new Mesh();
-                Vector3[] vertices = points.ToArray();
+                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.002f, p.z)).ToArray();
                 mesh.vertices = vertices;
-                int[] triangles = new int[(points.Count - 2) * 3];
-                int triangleIndex = 0;
-                for (int i = 1; i < points.Count - 1; i++){
-                    triangles[triangleIndex] = 0;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = i + 1;
-                    triangleIndex += 3;
-                }
+
                 
-                mesh.triangles = triangles;
+                mesh.triangles = earClipping.triangulation(points).ToArray();
                 mesh.RecalculateNormals();
                 Vector3[] normals = mesh.normals;
 
@@ -233,20 +229,13 @@ public class WorldBuilder : MonoBehaviour
                 scrub.transform.parent = naturals.transform;
             } else if(type == "wood"){
                 GameObject wood = new GameObject("wood_" + id);
-
+Debug.Log("Build : wood_" + id);
                 Mesh mesh = new Mesh();
-                Vector3[] vertices = points.ToArray();
+                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.004f, p.z)).ToArray();
                 mesh.vertices = vertices;
-                int[] triangles = new int[(points.Count - 2) * 3];
-                int triangleIndex = 0;
-                for (int i = 1; i < points.Count - 1; i++){
-                    triangles[triangleIndex] = 0;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = i + 1;
-                    triangleIndex += 3;
-                }
-                
-                mesh.triangles = triangles;
+
+
+                mesh.triangles = earClipping.triangulation(points).ToArray();
                 mesh.RecalculateNormals();
                 Vector3[] normals = mesh.normals;
 
@@ -265,20 +254,12 @@ public class WorldBuilder : MonoBehaviour
                 wood.transform.parent = naturals.transform;
             } else if(type == "grassland"){
                 GameObject grassland = new GameObject("grassland_" + id);
-
+Debug.Log("Build : grassland_" + id);
                 Mesh mesh = new Mesh();
-                Vector3[] vertices = points.ToArray();
+                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.0f, p.z)).ToArray();
                 mesh.vertices = vertices;
-                int[] triangles = new int[(points.Count - 2) * 3];
-                int triangleIndex = 0;
-                for (int i = 1; i < points.Count - 1; i++){
-                    triangles[triangleIndex] = 0;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = i + 1;
-                    triangleIndex += 3;
-                }
-                
-                mesh.triangles = triangles;
+ 
+                mesh.triangles = earClipping.triangulation(points).ToArray();
                 mesh.RecalculateNormals();
                 Vector3[] normals = mesh.normals;
 
@@ -311,20 +292,13 @@ public class WorldBuilder : MonoBehaviour
     void buildLanduses(string id, List<Vector3> points, string type){
              if(type == "residential"){
                 GameObject residential = new GameObject("residential_" + id);
-
+Debug.Log("Build : residential_" + id);
                 Mesh mesh = new Mesh();
-                Vector3[] vertices = points.ToArray();
+                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.007f, p.z)).ToArray();
                 mesh.vertices = vertices;
-                int[] triangles = new int[(points.Count - 2) * 3];
-                int triangleIndex = 0;
-                for (int i = 1; i < points.Count - 1; i++){
-                    triangles[triangleIndex] = 0;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = i + 1;
-                    triangleIndex += 3;
-                }
+
                 
-                mesh.triangles = triangles;
+                mesh.triangles = earClipping.triangulation(points).ToArray();
                 mesh.RecalculateNormals();
                 Vector3[] normals = mesh.normals;
 
@@ -342,20 +316,12 @@ public class WorldBuilder : MonoBehaviour
                 residential.transform.parent = landuses.transform;
             } else  if(type == "landfill"){
                 GameObject landfill = new GameObject("landfill" + id);
-
+Debug.Log("Build : landfill" + id);
                 Mesh mesh = new Mesh();
-                Vector3[] vertices = points.ToArray();
+                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.006f, p.z)).ToArray();
                 mesh.vertices = vertices;
-                int[] triangles = new int[(points.Count - 2) * 3];
-                int triangleIndex = 0;
-                for (int i = 1; i < points.Count - 1; i++){
-                    triangles[triangleIndex] = 0;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = i + 1;
-                    triangleIndex += 3;
-                }
-                
-                mesh.triangles = triangles;
+
+                mesh.triangles = earClipping.triangulation(points).ToArray();
                 mesh.RecalculateNormals();
                 Vector3[] normals = mesh.normals;
 
@@ -374,20 +340,13 @@ public class WorldBuilder : MonoBehaviour
                 landfill.transform.parent = landuses.transform;
             } else  if(type == "meadow"){
                 GameObject meadow = new GameObject("meadow" + id);
-
+Debug.Log("Build : meadow" + id);
                 Mesh mesh = new Mesh();
-                Vector3[] vertices = points.ToArray();
+                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.001f, p.z)).ToArray();
                 mesh.vertices = vertices;
-                int[] triangles = new int[(points.Count - 2) * 3];
-                int triangleIndex = 0;
-                for (int i = 1; i < points.Count - 1; i++){
-                    triangles[triangleIndex] = 0;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = i + 1;
-                    triangleIndex += 3;
-                }
+ 
                 
-                mesh.triangles = triangles;
+                mesh.triangles = earClipping.triangulation(points).ToArray();
                 mesh.RecalculateNormals();
                 Vector3[] normals = mesh.normals;
 
@@ -406,20 +365,12 @@ public class WorldBuilder : MonoBehaviour
                 meadow.transform.parent = landuses.transform;
             } else  if(type == "industrial"){
                 GameObject industrial = new GameObject("industrial" + id);
-
+Debug.Log("Build : industrial" + id);
                 Mesh mesh = new Mesh();
-                Vector3[] vertices = points.ToArray();
+                Vector3[] vertices = points.Select(p => new Vector3(p.x, 0.005f, p.z)).ToArray();
                 mesh.vertices = vertices;
-                int[] triangles = new int[(points.Count - 2) * 3];
-                int triangleIndex = 0;
-                for (int i = 1; i < points.Count - 1; i++){
-                    triangles[triangleIndex] = 0;
-                    triangles[triangleIndex + 1] = i;
-                    triangles[triangleIndex + 2] = i + 1;
-                    triangleIndex += 3;
-                }
-                
-                mesh.triangles = triangles;
+
+                mesh.triangles = earClipping.triangulation(points).ToArray();
 
                 mesh.RecalculateNormals();
                 Vector3[] normals = mesh.normals;

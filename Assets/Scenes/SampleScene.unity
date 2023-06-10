@@ -821,6 +821,7 @@ MonoBehaviour:
   osmClient: {fileID: 1204268958}
   scale: 100
   lineWidth: 0.01
+  earClipping: {fileID: 1713857452}
 --- !u!4 &933319805
 Transform:
   m_ObjectHideFlags: 0
@@ -1818,7 +1819,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1674371562}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -38.788513, y: 4.2980347, z: -4.8304987}
+  m_LocalPosition: {x: -38.788513, y: 4.2980347, z: -8.68}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
