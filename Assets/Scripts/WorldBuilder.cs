@@ -19,6 +19,8 @@ public class WorldBuilder : MonoBehaviour
     GameObject railways; 
     GameObject naturals; 
     GameObject landuses; 
+    GameObject leisures; 
+    GameObject amenities; 
     GameObject others; 
 
     [SerializeField]
@@ -44,6 +46,12 @@ public class WorldBuilder : MonoBehaviour
 
         landuses = new GameObject("Landuses");
         landuses.transform.parent = this.transform.parent;
+
+        leisures = new GameObject("Leisures");
+        leisures.transform.parent = this.transform.parent;
+
+        amenities = new GameObject("Amenities");
+        amenities.transform.parent = this.transform.parent;
 
         others = new GameObject("Others");
         others.transform.parent = this.transform.parent; 
@@ -83,7 +91,8 @@ public class WorldBuilder : MonoBehaviour
                     buildWithLines("highway_"+way.Key, points, Color.green, highways);
                     break;
                 case "building": 
-                    buildWithLines("building_"+way.Key, points, new Color(0.5f, 1f, 0f, 1f), buildings);
+                    //buildWithLines("building_"+way.Key, points, new Color(0.5f, 1f, 0f, 1f), buildings);
+                    buildMesh("building_"+way.Key, 0.01f, points.GetRange(0, points.Count - 1), new Color(0.804f, 0.8f, 0.788f, 1.0f), buildings);
                     break;
                 case "railway": 
                     buildWithLines("railway_"+way.Key, points, Color.yellow, railways);
@@ -94,6 +103,12 @@ public class WorldBuilder : MonoBehaviour
                 case "landuse": 
                     buildLanduses(way.Key, points.GetRange(0, points.Count - 1), way.Value.type);
                     break;    
+                case "leisure": 
+                    buildLeisures(way.Key, points.GetRange(0, points.Count - 1), way.Value.type);
+                    break;  
+                case "amenity": 
+                    buildAmenities(way.Key, points.GetRange(0, points.Count - 1), way.Value.type);
+                    break;  
                 default:
                     buildOthers(way.Value.category + way.Key, points);
                     break;
@@ -116,80 +131,111 @@ public class WorldBuilder : MonoBehaviour
         
         int[] triangles = new int[6] { 0, 2, 1, 1, 2, 3 };
 
-            Mesh mesh = new Mesh();
-            mesh.vertices = vertices;    
-            mesh.triangles = triangles;
-            mesh.RecalculateNormals();
-            
+        Mesh mesh = new Mesh();
+        mesh.vertices = vertices;    
+        mesh.triangles = triangles;
+        mesh.RecalculateNormals();
+        
 
-            MeshFilter meshFilter = bounds.AddComponent<MeshFilter>();
-            meshFilter.mesh = mesh;
-            
-            MeshRenderer meshRenderer = bounds.AddComponent<MeshRenderer>();
-            meshRenderer.material = new Material(Shader.Find("Standard"));
-            meshRenderer.material.color = Color.white;
+        MeshFilter meshFilter = bounds.AddComponent<MeshFilter>();
+        meshFilter.mesh = mesh;
+        
+        MeshRenderer meshRenderer = bounds.AddComponent<MeshRenderer>();
+        meshRenderer.material = new Material(Shader.Find("Standard"));
+        meshRenderer.material.color = Color.white;
 
     }
 
     void buildWithLines(string id, List<Vector3> points, Color lineColor, GameObject parent){
-            GameObject newGameObject = new GameObject(id);
-            LineRenderer lineRenderer = newGameObject.AddComponent<LineRenderer>();
-            lineRenderer.positionCount = points.Count;
-            lineRenderer.startWidth = lineWidth;
-            lineRenderer.endWidth = lineWidth;
+        GameObject newGameObject = new GameObject(id);
+        LineRenderer lineRenderer = newGameObject.AddComponent<LineRenderer>();
+        lineRenderer.positionCount = points.Count;
+        lineRenderer.startWidth = lineWidth;
+        lineRenderer.endWidth = lineWidth;
 
-            lineRenderer.startColor = lineColor;
-            lineRenderer.endColor = lineColor;
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-            lineRenderer.SetPositions(points.Select(p => new Vector3(p.x, 0.01f, p.z)).ToArray());
-            newGameObject.transform.parent = parent.transform;
+        lineRenderer.startColor = lineColor;
+        lineRenderer.endColor = lineColor;
+        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        lineRenderer.SetPositions(points.Select(p => new Vector3(p.x, 0.01f, p.z)).ToArray());
+        newGameObject.transform.parent = parent.transform;
     }
 
-
     void buildNaturals(string id, List<Vector3> points, string type){
-             if(type == "water"){
-                buildMesh("water_"+id, 0.006f, points, Color.blue, naturals);
-            } else if(type == "scrub"){
-                buildMesh("scrub_"+id, 0.005f, points, new Color(0.047f, 0.553f, 0.478f, 1.0f), naturals);
-            } else if(type == "wood"){
-                buildMesh("wood_"+id, 0.007f, points, new Color(0.035f, 0.863f, 0.659f, 1.0f), naturals);
-            } else if(type == "grassland"){
-                buildMesh("grassland_"+id, 0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), naturals);
-            } else if(type == "heath"){
-                buildMesh("heath"+id, 0f, points, new Color(0.839f, 0.851f, 0.624f, 1.0f), naturals);
-            } else {
-                buildOthers(type+id, points);
-            } 
+            if(type == "water"){
+            buildMesh("water_"+id, 0.006f, points, Color.blue, naturals);
+        } else if(type == "scrub"){
+            buildMesh("scrub_"+id, 0.005f, points, new Color(0.047f, 0.553f, 0.478f, 1.0f), naturals);
+        } else if(type == "wood"){
+            buildMesh("wood_"+id, 0.007f, points, new Color(0.035f, 0.863f, 0.659f, 1.0f), naturals);
+        } else if(type == "grassland"){
+            buildMesh("grassland_"+id, 0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), naturals);
+        } else if(type == "heath"){
+            buildMesh("heath"+id, 0f, points, new Color(0.839f, 0.851f, 0.624f, 1.0f), naturals);
+        } else {
+            buildOthers(type+id, points);
+        } 
     }
 
 
     void buildLanduses(string id, List<Vector3> points, string type){
-             if(type == "residential"){
-                buildMesh("residential"+id, 0.009f, points, new Color(0.055f, 0.118f, 0.118f, 1.0f), landuses);
-            } else  if(type == "landfill"){
-                buildMesh("landfill"+id, 0.003f, points, new Color(0.714f, 0.714f, 0.565f, 1.0f), landuses);
-            } else  if(type == "meadow"){
-                buildMesh("meadow"+id, 0.002f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses);   
-            } else  if(type == "industrial"){
-                buildMesh("industrial"+id, 0.004f, points, new Color(0.922f, 0.859f, 0.914f, 1.0f), landuses); 
-            } else if(type =="forest"){
-                buildMesh("forest"+id, 0.008f, points, new Color(0.616f, 0.792f, 0.541f, 1.0f), landuses); 
-            } else if(type =="farmland"){
-                buildMesh("farmland"+id, 0.001f, points, new Color(0.933f, 0.941f, 0.835f, 1.0f), landuses); 
-            } else if(type =="grass"){
-                buildMesh("grass"+id, 0.0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), landuses); 
-            } else if(type =="education"){
-                buildMesh("education"+id, 0.010f, points, new Color(0.549f, 0.263f, 0.039f, 1.0f), landuses); 
-            }
-            else {
-                buildOthers(type+id, points);
-            } 
-
-
-
-
+            if(type == "residential"){
+            buildMesh("residential"+id, 0.009f, points, new Color(0.055f, 0.118f, 0.118f, 1.0f), landuses);
+        } else  if(type == "landfill"){
+            buildMesh("landfill"+id, 0.003f, points, new Color(0.714f, 0.714f, 0.565f, 1.0f), landuses);
+        } else  if(type == "meadow"){
+            buildMesh("meadow"+id, 0.002f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses);   
+        } else  if(type == "industrial"){
+            buildMesh("industrial"+id, 0.004f, points, new Color(0.922f, 0.859f, 0.914f, 1.0f), landuses); 
+        } else if(type =="forest"){
+            buildMesh("forest"+id, 0.008f, points, new Color(0.616f, 0.792f, 0.541f, 1.0f), landuses); 
+        } else if(type =="farmland"){
+            buildMesh("farmland"+id, 0.001f, points, new Color(0.933f, 0.941f, 0.835f, 1.0f), landuses); 
+        } else if(type =="grass"){
+            buildMesh("grass"+id, 0.0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), landuses); 
+        } else if(type =="education"){
+            buildMesh("education"+id, 0.010f, points, new Color(0.549f, 0.263f, 0.039f, 1.0f), landuses); 
+        } else if(type =="retail"){
+            buildMesh("retail"+id, 0.010f, points, new Color(0.996f, 0.792f, 0.773f, 1.0f), landuses); 
+        } else if(type =="allotments"){
+            buildMesh("allotments"+id, 0.010f, points, new Color(0.788f, 0.882f, 0.749f, 1.0f), landuses); 
+        } else if(type =="railway"){
+            buildMesh("railway"+id, 0.010f, points, new Color(0.902f, 0.82f, 0.89f, 1.0f), landuses); 
+        } else if(type =="commercial"){
+            buildMesh("commercial"+id, 0.010f, points, new Color(0.933f, 0.812f, 0.812f, 1.0f), landuses); 
+        } else if(type =="religious"){
+            buildMesh("religious"+id, 0.010f, points, new Color(0.804f, 0.8f, 0.788f, 1.0f), landuses); 
+        } else if(type =="garages"){
+            buildMesh("garages"+id, 0.010f, points, new Color(0.839f, 0.839f, 0.757f, 1.0f), landuses); 
+        } else if(type =="cemetery"){
+            buildMesh("cemetery"+id, 0.010f, points, new Color(0.667f, 0.796f, 0.686f, 1.0f), landuses); 
+        } else if(type =="village_green"){
+            buildMesh("village_green"+id, 0.0f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses); 
+        } else if(type =="basin"){
+            buildMesh("basin"+id, 0.006f, points, new Color(0.667f, 0.827f, 0.875f, 1.0f), landuses); 
+        } else if(type =="orchard"){
+            buildMesh("orchard"+id, 0.007f, points, new Color(0.62f, 0.863f, 0.565f, 1.0f), landuses); 
+        } else {
+            buildOthers(type+id, points);
+        } 
     }
 
+    void buildLeisures(string id, List<Vector3> points, string type){
+        if(type == "park"){
+            buildMesh("park"+id, 0.001f, points, new Color(0.804f, 0.969f, 0.788f, 1.0f), leisures);
+        } else {
+            buildOthers(type+id, points);
+        } 
+    }
+
+    void buildAmenities(string id, List<Vector3> points, string type){
+        if(type == "parking"){
+            buildMesh("parking"+id, 0.007f, points, new Color(0.933f, 0.933f, 0.933f, 1.0f), amenities);
+        } else if(type == "school"){
+            buildMesh("school"+id, 0.007f, points, new Color(0.549f, 0.263f, 0.039f, 1.0f), amenities);
+        } else {
+            buildOthers(type+id, points);
+        } 
+    }
 
 
     void buildMesh(string id, float offset_y, List<Vector3> points, Color meshColor, GameObject parent){

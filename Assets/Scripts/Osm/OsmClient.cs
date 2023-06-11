@@ -48,6 +48,8 @@ public class OsmClient : MonoBehaviour
         mainCategories.Add("building");
         mainCategories.Add("natural");
         mainCategories.Add("landuse");
+        mainCategories.Add("leisure");
+        mainCategories.Add("amenity");
     }
 
     private bool isMainCategory(string category){
