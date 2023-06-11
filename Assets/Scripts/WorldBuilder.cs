@@ -23,6 +23,14 @@ public class WorldBuilder : MonoBehaviour
     GameObject amenities; 
     GameObject others; 
 
+    public Texture2D grassTexture;
+    public Texture2D waterTexture;
+    public Texture2D meadowTexture;
+    public Texture2D forestTexture;
+    public Texture2D scrubTexture;
+    public Texture2D farmlandTexture;
+    public Texture2D landfillTexture;
+
     [SerializeField]
     private EarClipping earClipping;
 
@@ -92,7 +100,7 @@ public class WorldBuilder : MonoBehaviour
                     break;
                 case "building": 
                     //buildWithLines("building_"+way.Key, points, new Color(0.5f, 1f, 0f, 1f), buildings);
-                    buildMesh("building_"+way.Key, 0.01f, points.GetRange(0, points.Count - 1), new Color(0.804f, 0.8f, 0.788f, 1.0f), buildings);
+                    buildMesh("building_"+way.Key, 0.01f, points.GetRange(0, points.Count - 1), new Color(0.804f, 0.8f, 0.788f, 1.0f), buildings, null);
                     break;
                 case "railway": 
                     buildWithLines("railway_"+way.Key, points, Color.yellow, railways);
@@ -162,15 +170,15 @@ public class WorldBuilder : MonoBehaviour
 
     void buildNaturals(string id, List<Vector3> points, string type){
             if(type == "water"){
-            buildMesh("water_"+id, 0.006f, points, Color.blue, naturals);
+            buildMesh("water_"+id, 0.006f, points, Color.blue, naturals, waterTexture);
         } else if(type == "scrub"){
-            buildMesh("scrub_"+id, 0.005f, points, new Color(0.047f, 0.553f, 0.478f, 1.0f), naturals);
+            buildMesh("scrub_"+id, 0.005f, points, new Color(0.047f, 0.553f, 0.478f, 1.0f), naturals, scrubTexture);
         } else if(type == "wood"){
-            buildMesh("wood_"+id, 0.007f, points, new Color(0.035f, 0.863f, 0.659f, 1.0f), naturals);
+            buildMesh("wood_"+id, 0.007f, points, new Color(0.035f, 0.863f, 0.659f, 1.0f), naturals, forestTexture);
         } else if(type == "grassland"){
-            buildMesh("grassland_"+id, 0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), naturals);
+            buildMesh("grassland_"+id, 0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), naturals, grassTexture);
         } else if(type == "heath"){
-            buildMesh("heath"+id, 0f, points, new Color(0.839f, 0.851f, 0.624f, 1.0f), naturals);
+            buildMesh("heath"+id, 0f, points, new Color(0.839f, 0.851f, 0.624f, 1.0f), naturals, null);
         } else {
             buildOthers(type+id, points);
         } 
@@ -179,41 +187,41 @@ public class WorldBuilder : MonoBehaviour
 
     void buildLanduses(string id, List<Vector3> points, string type){
             if(type == "residential"){
-            buildMesh("residential"+id, 0.009f, points, new Color(0.055f, 0.118f, 0.118f, 1.0f), landuses);
+            buildMesh("residential"+id, 0.009f, points, new Color(0.055f, 0.118f, 0.118f, 1.0f), landuses, null);
         } else  if(type == "landfill"){
-            buildMesh("landfill"+id, 0.003f, points, new Color(0.714f, 0.714f, 0.565f, 1.0f), landuses);
+            buildMesh("landfill"+id, 0.003f, points, new Color(0.714f, 0.714f, 0.565f, 1.0f), landuses, landfillTexture);
         } else  if(type == "meadow"){
-            buildMesh("meadow"+id, 0.002f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses);   
+            buildMesh("meadow"+id, 0.002f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses, meadowTexture);   
         } else  if(type == "industrial"){
-            buildMesh("industrial"+id, 0.004f, points, new Color(0.922f, 0.859f, 0.914f, 1.0f), landuses); 
+            buildMesh("industrial"+id, 0.004f, points, new Color(0.922f, 0.859f, 0.914f, 1.0f), landuses, null); 
         } else if(type =="forest"){
-            buildMesh("forest"+id, 0.008f, points, new Color(0.616f, 0.792f, 0.541f, 1.0f), landuses); 
+            buildMesh("forest"+id, 0.008f, points, new Color(0.616f, 0.792f, 0.541f, 1.0f), landuses, forestTexture); 
         } else if(type =="farmland"){
-            buildMesh("farmland"+id, 0.001f, points, new Color(0.933f, 0.941f, 0.835f, 1.0f), landuses); 
+            buildMesh("farmland"+id, 0.001f, points, new Color(0.933f, 0.941f, 0.835f, 1.0f), landuses, farmlandTexture); 
         } else if(type =="grass"){
-            buildMesh("grass"+id, 0.0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), landuses); 
+            buildMesh("grass"+id, 0.0f, points, new Color(0.808f, 0.925f, 0.694f, 1.0f), landuses, grassTexture); 
         } else if(type =="education"){
-            buildMesh("education"+id, 0.010f, points, new Color(0.549f, 0.263f, 0.039f, 1.0f), landuses); 
+            buildMesh("education"+id, 0.010f, points, new Color(0.549f, 0.263f, 0.039f, 1.0f), landuses, null); 
         } else if(type =="retail"){
-            buildMesh("retail"+id, 0.010f, points, new Color(0.996f, 0.792f, 0.773f, 1.0f), landuses); 
+            buildMesh("retail"+id, 0.010f, points, new Color(0.996f, 0.792f, 0.773f, 1.0f), landuses, null); 
         } else if(type =="allotments"){
-            buildMesh("allotments"+id, 0.010f, points, new Color(0.788f, 0.882f, 0.749f, 1.0f), landuses); 
+            buildMesh("allotments"+id, 0.010f, points, new Color(0.788f, 0.882f, 0.749f, 1.0f), landuses, null); 
         } else if(type =="railway"){
-            buildMesh("railway"+id, 0.010f, points, new Color(0.902f, 0.82f, 0.89f, 1.0f), landuses); 
+            buildMesh("railway"+id, 0.010f, points, new Color(0.902f, 0.82f, 0.89f, 1.0f), landuses, null); 
         } else if(type =="commercial"){
-            buildMesh("commercial"+id, 0.010f, points, new Color(0.933f, 0.812f, 0.812f, 1.0f), landuses); 
+            buildMesh("commercial"+id, 0.010f, points, new Color(0.933f, 0.812f, 0.812f, 1.0f), landuses, null); 
         } else if(type =="religious"){
-            buildMesh("religious"+id, 0.010f, points, new Color(0.804f, 0.8f, 0.788f, 1.0f), landuses); 
+            buildMesh("religious"+id, 0.010f, points, new Color(0.804f, 0.8f, 0.788f, 1.0f), landuses, null); 
         } else if(type =="garages"){
-            buildMesh("garages"+id, 0.010f, points, new Color(0.839f, 0.839f, 0.757f, 1.0f), landuses); 
+            buildMesh("garages"+id, 0.010f, points, new Color(0.839f, 0.839f, 0.757f, 1.0f), landuses, null); 
         } else if(type =="cemetery"){
-            buildMesh("cemetery"+id, 0.010f, points, new Color(0.667f, 0.796f, 0.686f, 1.0f), landuses); 
+            buildMesh("cemetery"+id, 0.010f, points, new Color(0.667f, 0.796f, 0.686f, 1.0f), landuses, null); 
         } else if(type =="village_green"){
-            buildMesh("village_green"+id, 0.0f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses); 
+            buildMesh("village_green"+id, 0.0f, points, new Color(0.804f, 0.922f, 0.69f, 1.0f), landuses, grassTexture); 
         } else if(type =="basin"){
-            buildMesh("basin"+id, 0.006f, points, new Color(0.667f, 0.827f, 0.875f, 1.0f), landuses); 
+            buildMesh("basin"+id, 0.006f, points, new Color(0.667f, 0.827f, 0.875f, 1.0f), landuses, waterTexture); 
         } else if(type =="orchard"){
-            buildMesh("orchard"+id, 0.007f, points, new Color(0.62f, 0.863f, 0.565f, 1.0f), landuses); 
+            buildMesh("orchard"+id, 0.007f, points, new Color(0.62f, 0.863f, 0.565f, 1.0f), landuses, null); 
         } else {
             buildOthers(type+id, points);
         } 
@@ -221,7 +229,7 @@ public class WorldBuilder : MonoBehaviour
 
     void buildLeisures(string id, List<Vector3> points, string type){
         if(type == "park"){
-            buildMesh("park"+id, 0.001f, points, new Color(0.804f, 0.969f, 0.788f, 1.0f), leisures);
+            buildMesh("park"+id, 0.001f, points, new Color(0.804f, 0.969f, 0.788f, 1.0f), leisures, null);
         } else {
             buildOthers(type+id, points);
         } 
@@ -229,40 +237,53 @@ public class WorldBuilder : MonoBehaviour
 
     void buildAmenities(string id, List<Vector3> points, string type){
         if(type == "parking"){
-            buildMesh("parking"+id, 0.007f, points, new Color(0.933f, 0.933f, 0.933f, 1.0f), amenities);
+            buildMesh("parking"+id, 0.007f, points, new Color(0.933f, 0.933f, 0.933f, 1.0f), amenities, null);
         } else if(type == "school"){
-            buildMesh("school"+id, 0.007f, points, new Color(0.549f, 0.263f, 0.039f, 1.0f), amenities);
+            buildMesh("school"+id, 0.007f, points, new Color(0.549f, 0.263f, 0.039f, 1.0f), amenities, null);
         } else {
             buildOthers(type+id, points);
         } 
     }
 
 
-    void buildMesh(string id, float offset_y, List<Vector3> points, Color meshColor, GameObject parent){
-           GameObject newGameObject = new GameObject(id);
+    void buildMesh(string id, float offset_y, List<Vector3> points, Color meshColor, GameObject parent, Texture2D texture){
+        GameObject newGameObject = new GameObject(id);
 //Debug.Log("Build : "+id);
-                Mesh mesh = new Mesh();
-                Vector3[] vertices = points.Select(p => new Vector3(p.x, offset_y, p.z)).ToArray();
-                mesh.vertices = vertices;
+        Mesh mesh = new Mesh();
+        Vector3[] vertices = points.Select(p => new Vector3(p.x, offset_y, p.z)).ToArray();
+        mesh.vertices = vertices;
 
-                mesh.triangles = earClipping.triangulation(points).ToArray();
+        mesh.triangles = earClipping.triangulation(points).ToArray();
 
-                mesh.RecalculateNormals();
-                Vector3[] normals = mesh.normals;
+        mesh.RecalculateNormals();
+        Vector3[] normals = mesh.normals;
 
-                for (int i = 0; i < normals.Length; i++){
-                    normals[i] = Vector3.up;
-                }
-                mesh.normals = normals;
+        for (int i = 0; i < normals.Length; i++){
+            normals[i] = Vector3.up;
+        }
+        mesh.normals = normals;
 
-                MeshFilter meshFilter = newGameObject.AddComponent<MeshFilter>();
-                meshFilter.mesh = mesh;
-                
-                MeshRenderer meshRenderer = newGameObject.AddComponent<MeshRenderer>();
-                meshRenderer.material = new Material(Shader.Find("Standard"));
-                meshRenderer.material.color = meshColor;
-                
-                newGameObject.transform.parent = parent.transform;
+        MeshFilter meshFilter = newGameObject.AddComponent<MeshFilter>();
+        meshFilter.mesh = mesh;
+        
+        MeshRenderer meshRenderer = newGameObject.AddComponent<MeshRenderer>();
+        Material material = new Material(Shader.Find("Standard"));
+
+        if (texture != null){
+
+            Vector2[] uv = new Vector2[vertices.Length];
+            for (int i = 0; i < uv.Length; i++)
+                uv[i] = new Vector2(vertices[i].x, vertices[i].z); 
+
+            mesh.uv = uv;
+            material.mainTexture = texture;
+
+        } else {
+            material.color = meshColor;
+        }
+
+        meshRenderer.material = material;
+        newGameObject.transform.parent = parent.transform;
     }
 
     void buildOthers(string id, List<Vector3> points){
